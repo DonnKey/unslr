@@ -7,12 +7,11 @@
 #include "utility.h"
 #include "nextitem.h"
 
-/*
-                        *******************************
-                        *                             *
-                        *         READ INPUT          *
-                        *                             *
-                        *******************************
+/*                      ******************************
+                        *                            *
+                        *         READ INPUT         *
+                        *                            *
+                        ******************************
 */
 
 #define CARD_SIZE 200
@@ -55,7 +54,7 @@ char **result1;
    char str[100];
    char *symbol;
    int lp;
-   char stop;   /*  THE RIGHT DELIMITER  */
+   char stop;   /*  THE RIGHT DELIMITER.  */
 /* #### Page 2 */
    boolean no_stop_found;
 
@@ -72,8 +71,8 @@ char **result1;
       if (card_image[card_ptr] != blank) {
          lp = card_ptr;         /*  MARK LEFT BOUNDARY  */
          if (card_image[lp] == left_bracket && card_image[lp + 1] != blank)
-                stop = right_bracket;
-         else   stop = blank;
+               stop = right_bracket;
+         else  stop = blank;
          /*  NOW LOOK FOR STOP  */;
          no_stop_found = true;
          while (no_stop_found && card_ptr < card_len) {
@@ -87,7 +86,7 @@ char **result1;
             error(str,0);
             stop = blank;
             card_ptr = lp;
-            /*  ERROR REROVERY  */
+            /*  ERROR RECOVERY  */
             while (card_image[card_ptr] != blank && card_ptr < card_len) {
                card_ptr = card_ptr + 1;
             }

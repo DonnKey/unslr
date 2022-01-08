@@ -176,11 +176,11 @@ void extract_grammar();
 
 /*
 
-                   FOR OR GO IO IOI       IK  IK I
-                   x                               x
-                   *    TABLE EXPANSION.UTILITY    x
-                   x                               x
-                   KOO OOO        OR     IK    I I IO
+                   *********************************
+                   *                               *
+                   *    TABLE EXPANSION UTILITY    *
+                   *                               *
+                   *********************************
 */
 table_state new_row_number()
 {
@@ -337,7 +337,7 @@ void find_different_reduces()
 /*
                    *********************************
                    *                               *
-                   *    BUILD NEW  NON-TERMINALS   *
+                   *    BUILD NEW NON-TERMINALS    *
                    *                               *
                    *********************************
 */
@@ -786,7 +786,7 @@ printf("cm: %s\n",hexbits(copy_mask));
 
       x_minus(&p_sub_i,start_set[rule_x], start_set[rule_y]);
       q_sub_i = newbits(start_set[rule_y]);
-      /*  FIND WHERE THE TWO PATHS  INTERSECT */;
+      /*  FIND WHERE THE TWO PATHS INTERSECT */;
       {
          for (pos = prod_start[rule_x] + 1;
             pos <= prod_start[rule_x] + rhs_len[rule_x]; pos++) {
@@ -908,7 +908,7 @@ void build_new_nts()
                   X=Y  X>>Y  X<<Y  X INC Y  X DIS Y
       S   X=Y      D"    D'   D       E"      A"
 /* #### Page 17 */ /*
-      T   Y>>      D'    D'   C       E'      A"
+      T   X>>Y     D'    D'   C       E'      A"
       A   X<<Y     D     E    D       E       A"
       R   X INC Y  C"    E'   C       E"      A"
       T   X DIS Y  B"    B"   B"      B"      B"
@@ -924,7 +924,7 @@ void build_new_nts()
           T          T          X = Y
           F          T          X >> Y
           T          F          X << Y
-          F          F          X_INCOMP Y
+          F          F          X INCOMP Y
       IN THE TABLE THE TEST IS ACTUALLY FOR NON EMPTY.
 
       WE MAY ACTUALLY FIND CASES C AND E.

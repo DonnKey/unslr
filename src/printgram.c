@@ -11,11 +11,11 @@
 extern FILE *mso;
 
 /*
-                        *******************************
-                        *                             *
-                        *           PRINT_G           *
-                        *                             *
-                        *******************************
+                        ********************************
+                        *                              *
+                        *            PRINT_G           *
+                        *                              *
+                        ********************************
 */
 vocab_symbol last_lhs_printed, last_lhs_punched;
 
@@ -27,7 +27,7 @@ production_ptr n;
    production_symbols_ptr var;
 
    sym = prod_array[prod_start[n]];
-   /*  set up the left_part  */
+   /*  set up the left part   */
    if (sym == last_lhs_printed) {
       printf("%4d %.*s    |  ",n, strlen(v[sym]),blank_card);
    }
@@ -39,15 +39,14 @@ production_ptr n;
    /*  add on the right part  */
    var = prod_start[n];
    for (s = var + 1; s <= var + rhs_len[n]; s++) {
-/*   if (left_precedence[prod_arrayls]] != 0)
-         printf(" (p%d)",left_precedence[prod_array[s]]); */
+/*   if (left_precedence[prod_array[s]] != 0)
+         printf(" (p%d)",left_precedence[prod_array[s]]);  */
      printf(" %s", v[prod_array[s]]);
 /*   if (right_precedence[prod_array[s]] != 0)
-         printf(" (p%d) ",right_precedence[prod_array[s]]); */
+         printf(" (p%d)  ",right_precedence[prod_array[s]]); */
    }
    printf("\n");
 }
-
 void punch_prod(n)
 production_ptr n;
 {
@@ -57,14 +56,14 @@ production_ptr n;
    char *text;
 /* #### Page 2 */
    sym = prod_array[prod_start[n]];
-   /*  SET UP THE LEFT PART  */
+   /*  SET UP THE LEFT PART   */
    if (sym == last_lhs_punched) {
-      fprintf(mso, "%.*s ",strlen(v[sym]),blank_card);
+      fprintf(mso, "%.*s ", strlen(v[sym]),blank_card);
    }
    else {
       fprintf(mso, "%s ",v[sym]);
-  }
-   /*  ADD ON THE RIGHT PART  */
+   }
+   /*  ADD ON THE RIGHT PART   */
    var = prod_start[n];
    for (s = var + 1; s <= var + rhs_len[n]; s++) {
       fprintf(mso, " %s",v[prod_array[s]]);
@@ -81,7 +80,7 @@ int print, punch;
    char order[MAX_NO_SYMS];
    int n, i;
 
-   /*  PRINT THE PRODUCTIONS  */;
+   /*  PRINT THE PRODUCTIONS   */;
    double_space;
    last_lhs_printed = last_lhs_punched = 0;
    if (print) {
@@ -91,16 +90,16 @@ int print, punch;
    }
    /*  THE PRODUCTION ADDED AUTOMATICALLY IS NOT PRINTED  */;
    v[last_nt + 1] = "?";
-   for (i = first_nt; i <= last_nt + 1;  i++) {
+   for (i = first_nt; i <= last_nt + 1; i++) {
       order[i] = i;
    }
    order[first_nt] = goal_symbol;
    order[goal_symbol] = first_nt;
-   for (i = first_nt; i <= last_nt + 1; i++)  {
+   for (i = first_nt; i <= last_nt + 1; i++) {
       lhs = order[i];
       for (n = 1; n <= no_prods; n++) {
          if (prod_start[n] != 0 && prod_array[prod_start[n]] == lhs) {
-            /*  IF ITS THERE  */
+            /*  IF ITS THERE   */
             if (print) print_prod(n);
             if (punch) punch_prod(n);
          }

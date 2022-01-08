@@ -123,7 +123,7 @@ void find_all_inaccessibles()
                }
                else if (action_t != PHI) {
                   if (control[sd]) {
-                     printf("Inaccessible_LR (NT) entry %s at state %d and column %d was removed.\n",
+                     printf("    Inaccessible LR (NT) entry %s at state %d and column %d was removed.\n",
                      format_action( stripped_action_table(state_no,sym)), state_no, sym);
                   }
                   if (action_t == REDUCE) {
@@ -145,7 +145,7 @@ void find_all_inaccessibles()
             for (sym = first_nt; sym <= last_nt; sym++) {
                if (!x_test(marks[state_no], sym)
                   && action_type(action_table(state_no, sym)) != PHI) {
-                  if (control[sd]) printf("Inaccessible LR (T) entry %s at state %d and column %d was removed.\n",
+                  if (control[sd]) printf("    Inaccessible LR (T) entry %s at state %d and column %d was removed.\n",
                   format_action(action_table(state_no, sym)), state_no, sym);
                   action_table(state_no, sym) = phi_entry;
                }
@@ -170,12 +170,12 @@ void check_lhs_use()
    for (sym = first_nt; sym <= last_nt; sym++) {
       if (!x_test(lhs_used, sym)) {
          if (list_trace)
-            printf("Symbol %s is never on the left and thus removed.\n", v[sym]);
+            printf(" Symbol %s is never on the left and thus removed.\n", v[sym]);
 /* #### Page 4 */
          for (state_no = 0; state_no <= no_states; state_no++) {
             action_table(state_no, sym) = phi_entry;
             if (accessing_symbol[state_no] == sym) {
-               if (list_trace) printf("State %d was removed.\n",state_no);
+               if (list_trace) printf("      State %d was removed.\n",state_no);
                state_removed = true;
                accessing_symbol[state_no] = 0;
 
@@ -201,7 +201,7 @@ void check_lhs_use()
          if (!x_test(states_used, state_no)
              && accessing_symbol[state_no] != 0) {
             if (list_trace)
-               printf("State %d became inaccessible\n", state_no);
+               printf("      State %d became inaccessible\n", state_no);
             state_removed = true;
             accessing_symbol[state_no] = 0;
             for (t_sym = 1; t_sym <= no_terminals; t_sym++) {

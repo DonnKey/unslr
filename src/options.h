@@ -6,7 +6,7 @@
 #define ig 3    /*  LISTING OF INTERMEDIATE GRAMMARS  */
 #define it 4    /*  LISTING OF INTERMEDIATE TABLES  */
 #define ft 5    /*  LISTING OF FINAL TABLE  */
-#define fg 6    /*  LISTING OF FINAL GRAMMAR. */
+#define fg 6    /*  LISTING OF FINAL GRAMMAR  */
 #define sd 7    /*  PRINT SPLITTING DECISIONS  */
 #define pg 8    /*  PUNCH THE RESULTING GRAMMARS  */
 #define pi 9    /*  PUNCH THE INTERMEDIATE TABLES  */
@@ -16,7 +16,7 @@
 #define ap 13   /*  LIST TABLE AFTER PHI-INACC. TEST BUT BEFORE SPLIT  */
 #define go 14   /*  RECOVER GRAMMAR ONLY, NO FIX UP  */
 #define ie 15   /*  IGNORE ERRORS ON INPUT  */
-#define pt 16   /*  PUNCH FINAL TABLE  */
+#define pt 16   /*  PUNCH FINAL TABLES  */
 #define d1 17   /*  **DEBUG**  */
 #define d2 d1+1 /*  **DEBUG**  */
 #define d3 d1+2 /*  **DEBUG**  */

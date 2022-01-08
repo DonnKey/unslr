@@ -17,9 +17,9 @@ void x_setempty();
 void x_not();
 int x_count();
 boolean x_empty();
+boolean x_equal();
 boolean x_empty_minus();
 boolean x_empty_and();
-boolean x_equal();
 bitstring newbits();
 void freebits();
 

@@ -89,7 +89,7 @@ int *position;
       /*  CHECK FOR EMPTY RULE POSSIBILITY  */
       for (nt_sym = first_nt; nt_sym <= last_nt; nt_sym++) {
          goto_presence = NULLBITS;
-/*       if (x_empty(plh[rule_x]) || x_test(plh[rule_x],nt_sym)) */
+/*       if (x_empty(plh[rule_x]) || x_test(plh[rule_x],nt_sym))  (Comment in XPL: translate to &&) */
          if (x_empty_minus(p[0], goto_set[nt_sym])
             && compute_lgtf(p[0], nt_sym, &goto_presence)
             && x_empty_minus(rf, goto_presence)) {

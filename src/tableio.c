@@ -90,6 +90,7 @@ void read_table()
          error("insufficient input", 2);
          return;
       }
+
       state = integer(result_item, "state #");
       if (x_test(states_used, state))
          error("state previously defined", 1);
@@ -112,6 +113,7 @@ void read_table()
          else
             ambiguous_state = false;
 /* #### Page 3 */
+
          switch(result_item[0]) {
 
          case 's':      /*  SHIFT  */
@@ -152,10 +154,11 @@ void read_table()
       }
 
       sym = first_nt;
-      /*  READ ONLY As MANY NT-S AS PROVIDED  */
+      /*  READ ONLY AS MANY NT-S AS PROVIDED  */
 
       while (next_item(&result_item)) {
          if (sym <= last_nt) {
+
             switch(result_item[0]) {
 
             case 'e':
@@ -164,27 +167,28 @@ void read_table()
                 break;
 
             case 's': /*  GOTO (=SHIFT)  */
-               a = integer(&result_item[1], "shift goto rule");
-               goto insert;
+                a = integer(&result_item[1], "shift goto rule");
+                goto insert;
 /* #### Page 4 */
+
             default:
-               a = integer(result_item, "normal goto rule");
+                a = integer(result_item, "normal goto rule");
             insert:
-               action_table(state, sym) = action_pair(false, GOTO, a);
-               if (accessing_symbol[a] == 0) accessing_symbol[a] = sym;
-               else if (accessing_symbol[a] != sym)
-                                                    {
-                  sprintf(printbuffer,
-                     "state %d has accessing symbols %s and %s",
-                     a, v[sym], v[accessing_symbol[a]]);
-                  error(printbuffer, 1);
-               }
-               break;
+                action_table(state, sym) = action_pair(false, GOTO, a);
+                if (accessing_symbol[a] == 0) accessing_symbol[a] = sym;
+                else if (accessing_symbol[a] != sym) {
+                   sprintf(printbuffer,
+                      "state %d has accessing symbols %s and %s",
+                      a, v[sym], v[accessing_symbol[a]]);
+                   error(printbuffer, 1);
+                }
+                break;
             }
             sym = sym + 1;
          }
       }
    }
+
    /*  READ RULE LENGTHS IF PROVIDED  */
    if (control[il]) {
       for (rule = 1; rule <= no_prods; rule++) {
@@ -202,14 +206,14 @@ void read_table()
 
          /* ignore end of card */
          if (!next_item(&result_item)) next_item(&result_item);
-         for (sym = first_nt; sym  <= last_nt; sym++) {
-            if (strcmp(result_item, v[sym])  == 0) {
+         for (sym = first_nt; sym <= last_nt; sym++) {
+            if (strcmp(result_item, v[sym]) == 0) {
                x_setempty(&plh[rule]);
                x_set(&plh[rule], sym);
                goto search_done;
             }
          }
-         sprintf(printbuffer, " symbol  %s not found as a lhs", result_item);
+         sprintf(printbuffer, " symbol %s not found as a lhs", result_item);
          error(printbuffer, 1);
 
          search_done:;
@@ -219,7 +223,7 @@ void read_table()
 
 /*                   **********************************
                      *                                *
-                     *          ECHO  TABLE           *
+                     *          ECHO TABLE            *
                      *                                *
                      **********************************
 */
@@ -249,7 +253,7 @@ void echo_table()
       /*  TERMINAL SYMBOLS  */
       printf("%-35.34s",n<=no_terminals?v[n]:"");
       /*  NONTERMINAL SYMBOLS  */
-      if (n <= no_nts) printf("%s",v[n + no_terminals]);
+      if (n <= no_nts) printf("%s", v[n + no_terminals]);
       printf("\n");
    }
 
@@ -268,13 +272,14 @@ void echo_table()
       }
    }
    if (rule % 4 != 0) printf("\n");
+
    if (max(no_terminals, no_nts) > 20)
       eject_page;
    else
       double_space;
 
    printf("The shift/reduce table\n");
-   printf("  state        symbols\n");
+   printf("  state         symbols\n");
    printf("        ");
 
    /* print a header; odd numbers on the first line, even on the second */
@@ -282,7 +287,7 @@ void echo_table()
    for (symbol = 0; symbol < (no_terminals+1)/2 ; symbol++) {
       printf("    %4d",2*symbol+1);
    }
-   if ((no_terminals % 2) == 0)printf("    ");
+   if ((no_terminals % 2) == 0) printf("    ");
    printf(" |");
 
    for (symbol = 0; symbol < (no_nts+1)/2 ; symbol++) {
@@ -292,13 +297,13 @@ void echo_table()
 
    /* evens */
    printf("            ");
-   for (symbol = 1; symbol < (no_terminals+2)/2 ; symbol++) {
-      printf("    %4d",2*symbol);
+   for (symbol = 1; symbol < (no_terminals+2)/2; symbol++) {
+      printf("    %4d", 2*symbol);
    }
-   if ((no_terminals % 2) != 0)printf("    ");
+   if ((no_terminals % 2) != 0) printf("    ");
    printf(" |    ");
 
-   for (symbol = 1; symbol < (no_nts+2)/2 ; symbol++) {
+   for (symbol = 1; symbol < (no_nts+2)/2; symbol++) {
       printf("%4d    ",2*symbol);
    }
    printf("\n");
@@ -346,14 +351,14 @@ void punch_table()
    charpos = 0;
    fprintf(mso,"   ");
    for (symbol = first_nt; symbol <= last_nt; symbol++) {
-      fprintf(mso,"%s ",v[symbol]);
+      fprintf(mso,"%s ", v[symbol]);
       if ((charpos += strlen(v[symbol])+1) > 65) {fprintf(mso,"$\n");charpos=0;}
    }
    fprintf(mso,"\n");
 
    charpos = 0;
    for (state = 0; state <= no_states; state++) {
-      printf("%3d", state);
+      fprintf(mso, "%3d", state);
       for (symbol = 1; symbol <= last_nt; symbol++) {
          actn_entry = full_action(state, symbol);
          fprintf(mso,"%4s ",format_action(actn_entry));
@@ -368,8 +373,8 @@ void punch_table()
          str = "?";
       else
          str = v[prod_array[prod_start[n]]];
-      printf("%2d %12s ",rhs_len[n], str);
-      if ((charpos += min(strlen(v[symbol]),14)+4) > 75) {fprintf(mso,"$\n");charpos=0;}
+      fprintf(mso, "%2d %-12s ", rhs_len[n], str);
+      if ((charpos += min(strlen(str),14)+4) > 75) {fprintf(mso,"$\n");charpos=0;}
    }
    fprintf(mso,"\n");
 }

@@ -7,11 +7,11 @@ typedef unsigned char boolean;
 
 /* syntax macros */
 #define forever (1)
-#define infinity Ox7FFF
+#define infinity 0x7FFF
 
 /* common literals */
 #define blank ' '
-#define right_bracket  '>'
-#define left_bracket  '<'
+#define right_bracket '>'
+#define left_bracket '<'
 
 typedef unsigned char counter;  /*  COUNTS ENTRIES IN LIST TYPE TABLES  */

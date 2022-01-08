@@ -10,14 +10,14 @@ set_of_syms lhs_used = NULLBITS;        /*  NT'S APPEARING ON THE LEFT  */
 /* **********************(Applies to original XPL/S source)
 table_entry action_table(i, j, k)
 {
-/* IMPLEMENTS A PSEUDO 2 DIMENSIONAL ARRAY ACTION TABLE.
+/* IMPLEMENTS A PSEUDO 2 DIMENSIONAL ARRAY ACTION_TABLE.
    RETURNS ONLY THE SIGINFICANT PART, WITHOUT THE FLAG BIT.
    BECAUSE OF THE NATURE OF PROCEDURE CALL CODE GENERATION
-   THE STATEMENT ACTION TABLE(A,B) = ACTION_TABLE(C,D)
+   THE STATEMENT ACTION_TABLE(A,B) = ACTION_TABLE(C,D)
    DOES NOT WORK PROPERLY.  IN ALL CASES WHERE THIS IS DONE
    THE INTERMEDIATE VARIABLE K IS USED TO MAKE IT WORK PROPERLY. *?
    table_state i;
-   vocab_symbol i;
+   vocab_symbol j;
    table_entry k = infinity;
 
    int x;
@@ -34,7 +34,6 @@ table_entry action_table(i, j, k)
    }
 }
 
-
 table_entry full_action(i, j)
 {
 /* IMPLEMENTS A PSEUDO 2 DIMENSIONAL ARRAY ACTION_TABLE.
@@ -42,16 +41,16 @@ table_entry full_action(i, j)
    AS THE REST OF THE DATA *?
    table_state i;
    vocab_symbol j;
-
    int x;
 
-   x = i * (largest nt + 1) + j;
+   x = i * (largest_nt + 1) + j;
    if (x > MAX_NO_TABLE_ENTRIES)
         error("action table overflow", 2);
    return a_t[x];
 }
 ***************/
 /* #### Page 2 */
+
 void find_action(actn_entry, i, j)
 table_entry actn_entry;
 table_state *i;

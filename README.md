@@ -1,5 +1,10 @@
-# cmptab
-SLR1 table compression with (ambiguous) grammar extraction
+# unslr
+SLR1 table expansion with starting from a table for an ambiguous grammar
+with conflicts resolved
+and resulting with a table (and grammar) for the corresponding unambiguous
+grammar.
+
+See Also: cmptab (next to this repository on GitHub).
 
 This program is one of a pair to compress and expand SLR(1) (and some LR(1)) 
 grammars along with their corresponding tables.
@@ -19,7 +24,8 @@ manipulating the grammar: as an example it finds a nice grammar for the C ?:
 operator such that only expressions which would be "ambiguous" to the casual 
 reader of such a statement are required to be parenthesised.
 
-The source code is a translation to K&R C of the original XPL/S sources (from 1978). (The translation was made in 1979-81.)
+The source code is a translation to K&R C of the original XPL/S sources (from 1978),
+with some additions/changes made in 1988-1989. (The translation was made in 1979-81.)
 The C source was recovered via OCR (gImageReader) and hand edited to correct OCR errors until it
 compiled correctly using gcc/90 in the "standard C" configuration.
 A visual inspection for confusing standalone 'i' with '1' and 'l' was done, but
@@ -35,20 +41,27 @@ block label in XPL/S is translated to the target of the goto.
 (All gotos are thus either forward branches to just below the bottom of a loop
 or backward branches to the beginning of a loop.)
 
+XPL/S assumed programs were a single file, and supported nested procedures.
+The C version is more C-like in that regard; many procedures are in separate
+files, and nested procedures (and the associated scoping) are simulated by
+using file-scope variables.
+
 Some XPL/S code was found unnecessary in the original translation 
 (thanks to C libraries), and XPL/S allowed functions on the left, which is
 translated using #define.  The original code (in C-ish syntax) was retained
 as commentary.
 
 Some subsequent edits were required to make it run correctly, specifically
-treating the Accept state as a special case of Reduce for certain purposes.
-(This was a bug in the original code.)
+some standard headers were included, a test added where the code was assuming that
+(as on historical early C machines) *0 == 0 (and was not an error), and some
+handwritten notes were flagged (but not applied (yet)).
 Minor fixes to the punch-grammar function, introduced in the C translation,
 were made as well.
 
 The input format consists of white-space separated strings.
 Each line has a specific meaning.  Lines ending with '$' are assumed
-to be continued on the next input line.
+to be continued on the next input line.  (Be careful if you use '$' as
+a grammar symbol, particularly as the end of input.)
 (This due to the assumption that fixed-length records are involved.)
 If a token begins with '<', it may contain embedded spaces until the '>'
 is reached.
@@ -97,7 +110,7 @@ cannot be compressed any further.  It takes command line options as two-letter
 codes (no hyphen), and always reads from stdin and writes to stdout. The
 option codes and meanings are found in options.h.
 
-In a modern environment "punching" (the table) means writing to ./cmptab.out.
+In a modern environment "punching" (the table) means writing to ./unslr.out.
 
 A sample input program is in test/test_input, and launch.json is set up
 to read it and "print" to build/test_output.
@@ -105,8 +118,8 @@ to read it and "print" to build/test_output.
 The run time is very short for reasonable tables (sub-second).
 ### Current State
 
-The table compression (cmptab, this Git repo) is running,
-apparently correctly without any remaining errors. The code may
+The table expansion (unslr, this Git repo) is running,
+apparently correctly - but there may be remaining issues. The code may
 have whitespace differences from the original, and a few corrections
 (visible in the Git history) have been applied for compatibility with
 the current C standard.  Minor bugfixes (mentioned above) was also
@@ -114,8 +127,6 @@ applied.  There are comments in the source indicating the beginning of
 each page of the paper document to facilitate comparison.
 
 The PDF scans have not been uploaded yet.
-
-The table expansion program has yet to be scanned.
 
 ### If you are interested in serious use.
 

@@ -1,6 +1,6 @@
 /* #### Page 1 */
 /* grammar and table common types */
-typedef char vocab_symbol;
+typedef int vocab_symbol;
 typedef bitstring set_of_syms;
 
 /*

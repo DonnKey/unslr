@@ -1,5 +1,6 @@
 /* #### Page 1 */
 #include <memory.h>
+
 #include "type.h"
 #include "bitstring.h"
 /*             **************************************
@@ -8,13 +9,19 @@
                *             routines               *
                *                                    *
                **************************************
-
 */
 /*
    all functions but x_not work as expected.  x_not assumes
    that the length specifies the universe, and thus a dummy
    set or reset must be used to guarantee that the last bit
    in the universe is in fact defined.
+*/
+
+/*
+NOTE: the C implementation hews very closely to the XPL/S, and consequently
+probably leaks (XPL garbage collected strings).  Not worth the effort for
+an inherently short-lived program such as this, although if rewriting in a
+modern language, it would be easy enough to fix.
 */
 
 char *hexbits(str)
@@ -31,7 +38,7 @@ bitstring str;
    }
    len = (str->length+8)/8;
    for (i=0 ; i < len && i < 200/2; i++) {
-        sprintf (&str2[2*i],"%2.2x",str->bits[i]&0x7f);
+        sprintf(&str2[2*i],"%2.2x",str->bits[i]&0xff);
    }
    return str2;
 }
@@ -40,13 +47,14 @@ static bitstring x_bitstring(str)
 bitstring str;
 {
    int len;
-   if (str == NULLBITS)  {
+   if (str == NULLBITS) {
        str = (bitstring)malloc(sizeof(struct bitstring)+8/sizeof(char));
        str->length = -1;
        str->bits[0] = 0;
    }
    return str;
 }
+
 void x_set(str, bitindex)
 
 /*  set a single bit   */
@@ -74,14 +82,14 @@ int bitindex;
 
    *str = x_bitstring(*str);
    if (bitindex < 0) return;
-   if ((bitindex+8)/8 > ((*str)->length+8)/8)
-                                              {
+   if ((bitindex+8)/8 > ((*str)->length+8)/8) {
       *str = (bitstring) realloc(*str,sizeof(struct bitstring) + (bitindex+8)/8);
-      for (i=((*str)->length+8)/8+1;i <= (bitindex+8)/8; i++) (*str)->bits[i]=0;
+      for (i=((*str)->length+8)/8+1; i <= (bitindex+8)/8; i++) (*str)->bits[i]=0;
    }
    if ((*str)->length < bitindex) (*str)->length = bitindex;
    (*str)->bits[bitindex/8] &= ~(0x80>>bitindex%8);
 }
+
 boolean x_test(str, bitindex)
 /*  return value of a single bit  */
 bitstring str;
@@ -94,8 +102,7 @@ int bitindex;
 }
 
 void x_and(str0, str1, str2)
-
-/* the logical product of two bit strings  */
+/* the logical product of two bit strings */
 bitstring *str0, str1, str2;
 {
    bitstring str3;
@@ -114,7 +121,7 @@ bitstring *str0, str1, str2;
 /* #### Page 3 */
    len = (str2->length+8)/8;
    if (((*str0)->length+8)/8 < len) {
-        *str0 = (bitstring) realloc(*str0, sizeof(struct bitstring)+len);
+      *str0 = (bitstring) realloc(*str0, sizeof(struct bitstring)+len);
       for (i=((*str0)->length+8)/8+1;i <= len; i++) (*str0)->bits[i]=0;
    }
    len--;
@@ -122,7 +129,7 @@ bitstring *str0, str1, str2;
       (*str0)->bits[i] = str2->bits[i] & str1->bits[i];
    }
    (*str0)->bits[len] = str2->bits[len] & str1->bits[len] &
-                ~(0x7f >> (str2->length%8));
+               ~(0x7f >> (str2->length%8));
    (*str0)->length = str2->length;
 }
 
@@ -141,7 +148,7 @@ bitstring *str0, str1, str2;
       str1 = str2;
       str2 = str3;
    }
-   /*  str1 is now the longer; the result will be that of str1 */
+   /* str1 is now the longer; the result will be that of str1 */
    len = (str1->length+8)/8;
    if (((*str0)->length+8)/8 < len) {
         *str0 = (bitstring) realloc(*str0, sizeof(struct bitstring)+len);
@@ -168,20 +175,21 @@ bitstring *str0, str1;
 /*  inverse of a bit string up to the last defined bit  */
 {
    int i,len;
-/* #### Page 4 */
+
    *str0 = x_bitstring(*str0);
    str1 = x_bitstring(str1);
    len = (str1->length+8)/8;
    if ((*str0)->length < str1->length) {
-        *str0 = (bitstring)realloc(*str0,sizeof(struct bitstring)+len);
-      for (i=((*str0)->length+8)/8+1;i <= len; i++) (*str0)->bits[i]=0;
+      *str0 = (bitstring)realloc(*str0, sizeof(struct bitstring)+len);
+/* #### Page 4 */
+      (*str0)->length = str1->length;
    }
 
    len--;
    for (i=0; i<len; i++) {
       (*str0)->bits[i] = ~str1->bits[i];
    }
-   (*str0)->bits[len] = ~str1->bits[len] & ~(0x7f>>(str1->length%8));
+   (*str0)->bits[len] = ~str1->bits[len] & ~(0xff>>(str1->length%8));
 }
 
 boolean x_equal(str1, str2)
@@ -199,7 +207,7 @@ bitstring str1, str2;
       str2 = str3;
    }
 
-   /*  strl is now the longer */
+   /*  str1 is now the longer */
 
    len1 = (str1->length+8)/8 - 1;
    if (str2->length != -1) {
@@ -224,13 +232,13 @@ bitstring str1, str2;
 
    /* if lengths differ all trailing bits must be zero */
    if (len1 > len2) {
-/* #### Page 5 */
-           /* all of one chunk, plus maybe more, and a trailing part.*/
+           /* all of one chunk, plus maybe more, and a trailing part. */
            if ((str1->bits[len2] & (0xff >> bits2)) != 0) return 0;
 
            /* then whole bytes */
            for (i = len2+1; i<len1; i++) {
               if (str1->bits[i] != 0) return 0;
+/* #### Page 5 */
            }
            /* and the partial chunk */
            if ((str1->bits[len1] & ~(0x7f >> (str1->length%8))) != 0) return 0;
@@ -247,25 +255,15 @@ void x_minus(str0, str1, str2)
 bitstring *str0, str1, str2;
 {
    bitstring str3;
-   int i,lens,len1,len;
 
-   *str0 = x_bitstring(*str0);
-   str1 = x_bitstring(str1);
-   str2 = x_bitstring(str2);
-
-   str3 = newbits(*str0);
-   freebits(str0);
-   *str0 = str3;
-
-   lens = min(str1->length,str2->length);
-   len = (lens+8)/8;
-
-   for (i = 0; i<len; i++) {
-      (*str0)->bits[i] = str1->bits[i] & ~str2->bits[i];
+   if (str2->length < str1->length) {
+      x_reset(&str2, str1->length-1);
    }
-   (*str0)->bits[len] = str1->bits[len] &
-                        ~(str2->bits[len] & ~(0x7f >> (lens%8)));
-   (*str0)->length = str1->length;
+   str3 = x_bitstring(NULLBITS);
+   x_not(&str3, str2);
+   x_and(str0, str1, str3);
+
+   freebits(&str3);
 }
 
 int x_count(str)
@@ -281,8 +279,8 @@ bitstring str;
    if (len == -1) return 0;
    len = (len+8)/8 - 1;
    count = 0;
-/* #### Page 6 */
    for (i=0; i<len; i++) {
+/* #### Page 6 */
       item = str->bits[i];
       if (item != 0) {
          for (j=0; j<8; j++) {
