@@ -94,7 +94,6 @@ set_of_syms *lgtf;
          }
       }
    }
-/* printf("lgtf: %d, #s\n",found,hexbits(*lgtf)); */
    return found;
 }
 

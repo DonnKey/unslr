@@ -136,13 +136,6 @@ int *position;
          }
          /*  NOW CHECK THE GOTOS AS POSSIBLE LHSS  */
          for (nt_sym = first_nt; nt_sym <= last_nt; nt_sym++) {
- printf("nt %d rule %d: plh:%s\n",nt_sym,rule_x,hexbits(plh[rule_x]));
- printf("sl: %d\n" ,symbol_list[1]);
- printf("pos: %d\n",*position);
- printf("gt:%s\n",hexbits(goto_set[nt_sym]));
- printf("p :%s\n",hexbits(p[*position]));
- printf("rf: %s\n",hexbits(reduce_follow));
- printf("gp:%s\n",hexbits(goto_presence));
             goto_presence = NULLBITS;
             if ((x_empty(plh[rule_x]) || x_test(plh[rule_x], nt_sym))
                 && (*position != 1 || symbol_list[1] != nt_sym)
@@ -309,9 +302,7 @@ int *position;
       exact_match = false;
       /*  COMPUTE THE PRESENCE VECTOR FROM THE LAST COLUMN OF THE TRACE BACK
       TABLE  */
-/* printf("last nt %d\n",last_nt); */
       for (nt_sym = first_nt; nt_sym <= last_nt; nt_sym++) {
-/* printf("nt %d: plh:%s\n",nt_sym,hexbits(plh[rule_x])); */
          if (x_empty(plh[rule_x]) || x_test(plh[rule_x], nt_sym)) {
 /* HAND NOTE ++ */
             /*  IS THIS GOING TO BE A SELF ( <U> ::= <U> ) RULE; IF SO IGNORE*/
@@ -319,14 +310,9 @@ int *position;
 
             compute_lgtf(start_set, nt_sym, &lim_goto_follow);
 
-/* printf("not self: ss:%s\n",hexbits(start_set));
- printf("not self: gt:%s\n",hexbits(goto_set[nt_sym]));
- printf('"not self:rf:%s\n",hexbits(reduce_follow));
- printf(" not self:1f:%s\n",hexbits(lim_goto_follow)); */
             /* is it possible on both start set and reduce follow criteria? */
             if (!x_empty_minus(start_set, goto_set[nt_sym]) ||
                 !x_empty_minus(reduce_follow, lim_goto_follow)) continue;
-/* printf("subsets_pass\n"); */
             if (x_equal(start_set, goto_set[nt_sym])
                && x_equal(lim_goto_follow, reduce_follow)) {
                if (!exact_match)
@@ -346,7 +332,6 @@ int *position;
             }
 /* #### Page 7 */
             if (exact_match) continue;
-/* printf("on sizes\n"); */
 
             gtf_size = x_count(lim_goto_follow);
             goto_size = x_count(goto_set[nt_sym]);

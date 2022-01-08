@@ -105,20 +105,16 @@ void find_slr_inaccessibles()
          for (state_no = 0; state_no <= no_states; state_no++) {
             if (x_test(start_set[prod], state_no)) {
                x_set(&marks[state_no], lhs);
-/* printf("marks set: st:%d, lhs:%d, prod:%d: %s\n",state_no, lhs, prod, hexbits(marks[state_no])); */
                x_set(&lhs_used, lhs);
                if (!x_test(lhs_ok, lhs)) {
                   goto_state = action_state(action_table(state_no, lhs));
                   follow = newbits(reduce_follow[prod]);
-/* printf("rf set: %s\n", hexbits(follow)); */
                   for (sym = 1; sym  <=no_terminals; sym++) {
                      if (stripped_action_table(goto_state, sym) == actn_entry)
                         x_reset(&follow, sym);
 /* #### Page 3 */
                   }
-/* printf("follow set: %s\n", hexbits(follow)); */
                   x_or(&marks[goto_state],marks[goto_state], follow);
-/* printf("marks or: goto:%d: %s\n", goto_state, hexbits(marks[goto_state])); */
                }
             }
          }
@@ -540,12 +536,7 @@ rule_no prod;
             for (rule = 1; rule <= no_prods; rule++)  {
                if (x_test(in_start_set[model], rule)) {
                   first_sym = prod_array[prod_start[rule] + 1];
-printf("rule: %d, iss: %s\n",rule,hexbits(in_start_set[model]));
-printf("fs: %d ln: %d sy: %d ac: %s\n", first_sym, rhs_len[rule],
-                prod_array[prod_start[rule]],
-                format_action(action_table(model, first_sym)));
-printf("mm: %s\n", hexbits(*model_mask));                    /* HAND NOTE */
-printf("rf: %s\n",hexbits(reduce_follow[rule]));
+                                                             /* HAND NOTE */
                   if ((x_test(*model_mask, first_sym) || rhs_len[rule] == 0)
                      && !x_test(*model_mask, prod_array[prod_start[rule]])
                      && (action_type(action_table(model, first_sym) == SHIFT
@@ -554,7 +545,6 @@ printf("rf: %s\n",hexbits(reduce_follow[rule]));
                      x_set(model_mask, prod_array[prod_start[rule]]);
                      changed = true;
                   }
-printf("cm: %s\n",hexbits(copy_mask));
                   if ((x_test(copy_mask, first_sym) || rhs_len[rule] == 0)
                      && !x_test(copy_mask, prod_array[prod_start[rule]])
                      && (action_type(action_table(model, first_sym) == SHIFT

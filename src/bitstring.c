@@ -355,7 +355,6 @@ bitstring str1, str2;
         x_minus(&str, str1, str2);
         foo = x_empty(str);
         freebits(&str);
-/*printf("x_e_m: %d\n",foo); */
         return foo;
 }
 
