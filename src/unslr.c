@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "type.h"
 #include "utility.h"
@@ -222,12 +223,11 @@ vocab_symbol numb;
 
    sprintf(buffer,"<%d>",numb - no_terminals);
    new_name = newstring(buffer);
-   if (name != "") {    /* HAND NOTE */
+   if (strlen(name) != 0) {
 /* #### Page 5 */
       v[numb] = name;
    }
-   else
-        {
+   else {
       v[numb] = new_name;
    }
    return new_name;
@@ -353,7 +353,7 @@ table_state from_row, to_row;
    accessing_symbol[to_row] = accessing_symbol[from_row];
    for (prod = 1; prod <= no_prods; prod++) {
       if (x_test(start_set[prod], from_row))
-         x_set(&start_set[prod], to_row);         /* HAND NOTE */
+         x_set(&start_set[prod], to_row);
    }
 }
 
@@ -452,7 +452,7 @@ rule_no prod;
       table_state copied_row;
 /* #### Page 9 */
       table_state next_row;
-      vocab_symbol symb;                            /* HAND NOTE */
+      vocab_symbol symb;
 
       old_row = *end_row = start_row;
       for (pos = pos; pos <= prod_start[rule_x] + rhs_len[rule_x]; pos++) {
@@ -536,10 +536,9 @@ rule_no prod;
             for (rule = 1; rule <= no_prods; rule++)  {
                if (x_test(in_start_set[model], rule)) {
                   first_sym = prod_array[prod_start[rule] + 1];
-                                                             /* HAND NOTE */
                   if ((x_test(*model_mask, first_sym) || rhs_len[rule] == 0)
                      && !x_test(*model_mask, prod_array[prod_start[rule]])
-                     && (action_type(action_table(model, first_sym) == SHIFT
+                     && (action_type(action_table(model, first_sym) == SHIFT /* N.B.: SHIFT==GOTO */
                        || (rhs_len[rule] == 0
                          && !x_empty_and(*model_mask, reduce_follow[rule]))))) {
                      x_set(model_mask, prod_array[prod_start[rule]]);
@@ -570,7 +569,6 @@ rule_no prod;
                               freebits(set_q);
                               forward_one_step(set_p,
                                  prod_array[prod_start[prod] + jj], &set_q);
-            /* HAND NOTE */
                               set_p = newbits(set_q);
                            }
                            if (x_test(set_p, model)) {
@@ -738,7 +736,7 @@ rule_no prod;
                action_table(equiv_class_model, nont_a)
                  = action_pair(false, SHIFT, new_row_n);
                if (action_type(k) == SHIFT)
-                  accessing_symbol[action_state(k)] = nont_b;    /* HAND NOTE */
+                  accessing_symbol[action_state(k)] = nont_b;
                remove_action_from_row(goto_state, reduce_follow[rule_x]);
             }
          }
@@ -883,7 +881,7 @@ void build_new_nts()
             ss_y = newbits(split_ss[i]);
             rf_y = newbits(split_rf[i]);
             index_y = i;
-            break;                                    /* HAND NOTE */
+            break;
          }
       }
    }

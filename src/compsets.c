@@ -59,7 +59,7 @@ vocab_symbol nt_sym;
       tab_entry = stripped_action_table(state_no, nt_sym);
       table_action = action_type(tab_entry);
       if (table_action == GOTO) {
-         x_set(&gt_set, state_no);           /* HAND NOTE */
+         x_set(&gt_set, state_no);
       }
    }
    goto_set[nt_sym] = gt_set;

@@ -78,7 +78,7 @@ int *position;
       table_state state_to, state_from;
       set_of_states goto_presence;
 
-      boolean result;     /* HAND NOTE */
+      boolean result;
 
       text = text1 = NULL;
       markcnt_0 = markcnt_1 = 0;
@@ -113,9 +113,7 @@ int *position;
          for (state_to = 0; state_to  <=no_states;state_to++) {
             /*  WHAT SET OF STATES GOT US INTO THIS SET  */
 /* #### Page 3 */
-                                        /* HAND NOTE */
-
-            if (x_test(p[*position - 1], state_to)) {
+            if (x_test(p[(*position) - 1], state_to)) {
                sym = accessing_symbol[state_to];
 
                if (sym == 0)
@@ -179,7 +177,8 @@ int *position;
          error(printbuffer, 1);
          *position = *position - 1;
          if (list_trace) list_states(rule_x, *position, trace_marks, p, "no mark");
-         return false;    /* HAND NOTE */
+         result = false;
+         goto exit_point;
       }
 
       else if (markcnt_1 > 1) {
@@ -304,13 +303,13 @@ int *position;
       TABLE  */
       for (nt_sym = first_nt; nt_sym <= last_nt; nt_sym++) {
          if (x_empty(plh[rule_x]) || x_test(plh[rule_x], nt_sym)) {
-/* HAND NOTE ++ */
             /*  IS THIS GOING TO BE A SELF ( <U> ::= <U> ) RULE; IF SO IGNORE*/
             if (length == 1 && nt_sym == symbol_list[1]) continue;
 
             compute_lgtf(start_set, nt_sym, &lim_goto_follow);
 
             /* is it possible on both start set and reduce follow criteria? */
+            /* N.B.: XPL uses temp booleans (POSSIBLE_xx) to implement this */
             if (!x_empty_minus(start_set, goto_set[nt_sym]) ||
                 !x_empty_minus(reduce_follow, lim_goto_follow)) continue;
             if (x_equal(start_set, goto_set[nt_sym])

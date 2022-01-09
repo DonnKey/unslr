@@ -113,10 +113,8 @@ void find_all_inaccessibles()
       for (state_no = 0; state_no <= no_states; state_no++) {
          if (accessing_symbol[state_no] >= first_nt) {
 /* #### Page 3 */
-                                                 /* HAND NOTE s */
-
             for (sym = 1; sym <= last_nt ;sym++) {
-               action_t = action_type( stripped_action_table(state_no, sym ));
+               action_t = action_type(action_table(state_no, sym ));
                if (x_test(marks[state_no], sym)) {
                   if (action_t == PHI || action_t == ESSENTIAL_ERROR)
                      action_table(state_no, sym) = error_entry;
@@ -124,10 +122,10 @@ void find_all_inaccessibles()
                else if (action_t != PHI) {
                   if (control[sd]) {
                      printf("    Inaccessible LR (NT) entry %s at state %d and column %d was removed.\n",
-                     format_action( stripped_action_table(state_no,sym)), state_no, sym);
+                     format_action(action_table(state_no,sym)), state_no, sym);
                   }
                   if (action_t == REDUCE) {
-                     prod = action_rule(stripped_action_table(state_no, sym));
+                     prod = action_rule(action_table(state_no, sym));
                      x_reset(&reduce_follow[prod], sym);
                      changed = true;
                      /*  WE HAVE ZAPPED A REDUCE ENTRY, TRY AGAIN  */
@@ -139,7 +137,7 @@ void find_all_inaccessibles()
          }
          else if (accessing_symbol[state_no] != 0 || state_no == 0) {
             for (sym = 1; sym <= no_terminals; sym++) {
-               if (action_type(stripped_action_table(state_no, sym)) == PHI)
+               if (action_type(action_table(state_no, sym)) == PHI)
                   action_table(state_no, sym) = error_entry;
             }
             for (sym = first_nt; sym <= last_nt; sym++) {

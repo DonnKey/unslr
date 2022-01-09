@@ -54,7 +54,8 @@ as commentary.
 Some subsequent edits were required to make it run correctly, specifically
 some standard headers were included, a test added where the code was assuming that
 (as on historical early C machines) *0 == 0 (and was not an error), and some
-handwritten notes were flagged (but not applied (yet)).
+handwritten notes were flagged.  After further analysys, those notes have been applied (or not);
+the GIT history has a change just for that purpose.
 Minor fixes to the punch-grammar function, introduced in the C translation,
 were made as well.
 
