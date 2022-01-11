@@ -93,6 +93,9 @@ void find_slr_inaccessibles()
 
    inaccessibles_found = false;
 
+   for (state_no = 0; state_no < MAX_NO_STATES; state_no++) {
+      marks[state_no] = NULLBITS;
+   }
    do {
       changed = false;
       for (state_no = 0; state_no <= no_states; state_no++) {
@@ -566,7 +569,7 @@ rule_no prod;
                         if ((prod_array[prod_start[prod] + j]) == sym) {
                            set_p = newbits(start_set[prod]);
                            for (jj = 1; jj <= j - 1; jj++) {
-                              freebits(set_q);
+                              freebits(&set_q);
                               forward_one_step(set_p,
                                  prod_array[prod_start[prod] + jj], &set_q);
                               set_p = newbits(set_q);
