@@ -12,6 +12,8 @@
 #include "tableio.h"
 #include "compsets.h"
 
+void find_rule(rule_no rule_x, set_of_syms *rf, set_of_states *start_set);
+boolean find_right_part(rule_no rule_x, set_of_states p[], set_of_syms rf, bitstring trace_marks[2], int *position);
 /*
                  *********************************
                  *                               *
@@ -23,7 +25,7 @@
 /*  RECOVER THE GRAMMAR FROM THE TABLE  */
 
 #define SYMBOL_LIST_MAX 10
-vocab_symbol symbol_list [SYMBOL_LIST_MAX];
+vocab_symbol symbol_list[SYMBOL_LIST_MAX];
 
 void list_states(redn, position, trace_marks, x, title)
 rule_no redn;
@@ -56,14 +58,9 @@ char *title;
          printf("\n");
       }
    }
-/* #### Page 2 */
-boolean find_right_part(rule_x, p, rf, trace_marks, position)
-rule_no rule_x;
-set_of_states p[];
-set_of_syms rf;
-bitstring trace_marks[2];
-int *position;
 
+/* #### Page 2 */
+boolean find_right_part(rule_no rule_x, set_of_states p[], set_of_syms rf, bitstring trace_marks[2], int *position)
 {
       /*  THIS PROCEDURE FINDS THE RIGHT PART OF THE REDUCTION BY SEARCHING THE
       TABLE BACKWARDS FROM THE STATES DEFINED BY P(0)  */
@@ -97,7 +94,7 @@ int *position;
             markcnt_0 = markcnt_0 + 1;
             x_set(&trace_marks[0], 0);
             if (x_equal(p[0], goto_set[nt_sym])) {
-               x_set(&trace_marks[1], 0) ;
+               x_set(&trace_marks[1], 0);
                markpos_1 = *position;
                markcnt_1 = markcnt_1 + 1;
             }
@@ -107,10 +104,10 @@ int *position;
 
       /*  NOW BACK UP THRU THE TABLE  */
       while (forever) {
-         symbol_list[*position] =  0;
+         symbol_list[*position] = 0;
          p[*position] = NULLBITS;
          x_setempty(&(p[*position]));
-         for (state_to = 0; state_to  <=no_states;state_to++) {
+         for (state_to = 0; state_to <= no_states; state_to++) {
             /*  WHAT SET OF STATES GOT US INTO THIS SET  */
 /* #### Page 3 */
             if (x_test(p[(*position) - 1], state_to)) {
@@ -132,19 +129,20 @@ int *position;
                }
             }
          }
+
          /*  NOW CHECK THE GOTOS AS POSSIBLE LHSS  */
          for (nt_sym = first_nt; nt_sym <= last_nt; nt_sym++) {
             goto_presence = NULLBITS;
             if ((x_empty(plh[rule_x]) || x_test(plh[rule_x], nt_sym))
                 && (*position != 1 || symbol_list[1] != nt_sym)
                 && x_empty_minus(p[*position], goto_set[nt_sym])
-                && compute_lgtf(p[*position], nt_sym,  &goto_presence)
+                && compute_lgtf(p[*position], nt_sym, &goto_presence)
                 && x_empty_minus(rf, goto_presence))  {
                x_set(&trace_marks[0], *position);
                if (x_equal(p[*position], goto_set[nt_sym]))
                    x_set(&trace_marks[1],*position);
                /* WE SHOULD ALSO TEST THE FOLLOW SETS HERE, BUT AS THIS IS THE
-                  ONLY PLACE WE WOULD NEED THE GOTO FOLLOW,  AND IT IS ONLY USED
+                  ONLY PLACE WE WOULD NEED THE GOTO FOLLOW, AND IT IS ONLY USED
                   FOR MARKING, WHICH IS ONLY INFORMATIVE AND NOT REQUIRED FOR
                   THE ALG, WE OMIT THE TEST.  THE EFFECT IS TO STRONGLY MARK
                   SOME POSITIONS WHICH WOULD OTHERWISE BE WEAKLY MARKED.  */
@@ -152,12 +150,12 @@ int *position;
             freebits(&goto_presence);
          }
          if (x_test(trace_marks[0], *position)) {
-            /*  WE SET IT (AT LEAST ONCE)  */
+            /* WE SET IT (AT LEAST ONCE)  */
             markpos_0 = *position;
             markcnt_0 = markcnt_0 + 1;
          }
          if (x_test(trace_marks[1], *position)) {
-            /*  WE SET IT (AT LEAST ONCE)  */
+            /* WE SET IT (AT LEAST ONCE)  */
             markpos_1 = *position;
             markcnt_1 = markcnt_1 + 1;
          }
@@ -180,15 +178,13 @@ int *position;
          result = false;
          goto exit_point;
       }
-
       else if (markcnt_1 > 1) {
-         mark_position  = markpos_1;
+         mark_position = markpos_1;
          multi_mark = true;
          text = "strong mark";
       }
       else if (markcnt_1 == 1) {
          mark_position = markpos_1;
-
          multi_mark = false;
          text = "strong mark";
       }
@@ -228,15 +224,15 @@ int *position;
             *position = mark_position;
          }
          text1 = newstring(text1);
-         if (rhs_len[rule_x] != *position)  {
+         if (rhs_len[rule_x] != *position) {
             sprintf(printbuffer,
                "the length of rule %d was changed from %d to %d",
                rule_x, rhs_len[rule_x], *position);
             error(printbuffer,      1);
          }
          if (list_trace) {
-                sprintf(printbuffer, "A known length %s", text1);
-                list_states(rule_x, *position, trace_marks, p, printbuffer);
+            sprintf(printbuffer, "A known length %s", text1);
+            list_states(rule_x, *position, trace_marks, p, printbuffer);
          }
          result = true;
          goto exit_point;
@@ -273,10 +269,9 @@ int *position;
    int length;
    vocab_symbol *best_lhs;
    {
-
-      /* LOOK AT ALL_LHS'S AND FIND THE "BEST".
-         1) THE PRESENCE VECTOR SHOULD MATCH:THE STATES TRACED BACK TO (THAT
-            IS  THERE SHOULD BE A GOTO FOR EACH POSITION THAT COULD GENERATE
+      /* LOOK AT ALL LHS'S AND FIND THE "BEST".
+         1) THE PRESENCE VECTOR SHOULD MATCH THE STATES TRACED BACK TO (THAT
+            IS, THERE SHOULD BE A GOTO FOR EACH POSITION THAT COULD GENERATE
             THIS L.H.S.)
          2) THE REDUCE SPECIFIES A FOLLOW SET.  THE GOTOS ABOVE SHOULD KNOW
 /* #### Page 6 *//*
@@ -317,12 +312,10 @@ int *position;
                if (!exact_match)
                   /*  NONE YET  */
                   *best_lhs = nt_sym;
-               else
-                    {
+               else {
                   /*  THERE WAS ANOTHER  */
                   sprintf(printbuffer,
                     " the left hand side for %d could be %s or %s",
-
                     rule_x, v[*best_lhs], v[nt_sym]);
                   error(printbuffer, 0);
                }
@@ -355,8 +348,8 @@ int *position;
       }
 
       freebits(&best_gtf);
+      /* freebits(*best_goto); NOT THIS ONE... it's from a global */
       freebits(&lim_goto_follow);
-      freebits(&best_goto);
 
       if (exact_match) {
          if (list_trace) printf("    %-10s   exact l.h.s\n", v[*best_lhs]);
@@ -417,23 +410,18 @@ int *position;
 #endif /* UNSLR */
    }
 
-   void find_rule(rule_x, rf, start_set)
-   rule_no rule_x;
-   set_of_syms *rf;
-   set_of_states *start_set;
+   void find_rule(rule_no rule_x, set_of_syms *rf, set_of_states *start_set)
    {
       /*  TRACES THE STATES TO ARRIVE AT A RX ENTRY  */
       set_of_states p[21];
       int position;
-
       int i;
       table_state state;
       vocab_symbol lhs;
       boolean success;
       bitstring trace_marks[2];
       for (i=0; i<=20; i++) {
-        p[i] = NULLBITS;
-
+         p[i] = NULLBITS;
       }
       trace_marks[0] = NULLBITS;
       trace_marks[1] = NULLBITS;
@@ -466,8 +454,8 @@ int *position;
          x_setempty(&plh[rule_x]);
          rhs_len[rule_x] = 0;
       }
-      for (i=0; i<20; i++) {
-        freebits(&p[i]);
+      for (i=1; i<20; i++) { /*  not p[O]; it got saved */
+         freebits(&p[i]);
       }
       freebits(&trace_marks[0]);
       freebits(&trace_marks[1]);
@@ -481,7 +469,7 @@ void extract_grammar()
    nt_to_split = 0;
    split_count = - 1;
 #endif
-   prod_array_ptr = 1;  /*  RESET IT FOR EACH TIME  */
+   prod_array_ptr = 1; /*  RESET IT FOR EACH TIME  */
    for (nt_sym = first_nt; nt_sym <= last_nt; nt_sym++) {
       compute_goto_set(nt_sym);
    }
