@@ -24,24 +24,35 @@ an inherently short-lived program such as this, although if rewriting in a
 modern language, it would be easy enough to fix.
 */
 
+#define bitsPerByte 8
+#define bsWord(pos) ((pos)/(sizeof(bitstringMember)*bitsPerByte))
+#define bsBit(pos) ((pos)%(sizeof(bitstringMember)*bitsPerByte))
+#define bsLen(str) (bsWord((str)->maxIndex)+1)
+#define bsTopBit 0x8000000000000000ULL
+#define bsAllBits 0xffffffffffffffffULL
+#define bsOtherBits 0x7fffffffffffffffULL
+
 char *hexbits(bitstring str)
 /*  dump a bit string in hex  */
 {
    int i;
-   static char str2[220];
    int len;
 
-   if (str == NULLBITS) return "NULLBITS";
+   if (str == NULLBITS) {
+      return "NULLBITS";
+   }
    if (str->maxIndex == -1) {
         return "EMPTY";
    }
    if (str->maxIndex < -1) {
         return "ILLFORMED";
    }
-   len = (str->maxIndex+8)/8;
+
+   char *str2 = (char*)malloc(220); /* this leaks */
+   len = bsLen(str);
    int p = 0;
-   for (i=0 ; i < len && i < 200/2; i++) {
-        p += sprintf(&str2[2*i],"%2.2x",str->bits[i]&0xff);
+   for (i=0 ; i < len && i < 200/sizeof(bitstringMember); i++) {
+       p += sprintf(&str2[8*i],"%16.16llx",str->bits[i]);
    }
    sprintf(&str2[p], " (%d)", str->maxIndex);
    return str2;
@@ -49,65 +60,78 @@ char *hexbits(bitstring str)
 
 static bitstring x_bitstring(bitstring str)
 {
-   int len;
    if (str == NULLBITS) {
-       str = (bitstring)malloc(sizeof(struct bitstring));
-       str->maxIndex = -1;
-       str->bits[0] = 0;
+      str = (bitstring)malloc(sizeof(struct bitstring));
+      str->maxIndex = -1;
+      str->bits[0] = 0;
    }
    return str;
 }
 
 void x_set(bitstring *str, int bitindex)
-/*  set a single bit   */
 {
+   /*  set a single bit   */
    int i;
    *str = x_bitstring(*str);
-   if (bitindex < 0) return;
-   if ((bitindex+8)/8 > ((*str)->maxIndex+8)/8) {
-      *str = (bitstring) realloc(*str,sizeof(struct bitstring) + (bitindex+8)/8);
-      for (i=((*str)->maxIndex+8)/8+1;i <= (bitindex+8)/8; i++) (*str)->bits[i]=0;
+   if (bitindex < 0) {
+      return;
+   }
+   if (bsWord(bitindex)+1 > bsLen(*str)) {
+      *str = (bitstring) realloc(*str,sizeof(struct bitstring) + (bsWord(bitindex)+1)*sizeof(bitstringMember));
+      for (i=bsLen(*str); i <= bsWord(bitindex); i++) (*str)->bits[i]=0;
    }
    if ((*str)->maxIndex < bitindex) (*str)->maxIndex = bitindex;
-   (*str)->bits[bitindex/8] |= 0x80>>bitindex%8;
+   (*str)->bits[bsWord(bitindex)] |= bsTopBit>>bsBit(bitindex);
    assert((*str)->maxIndex >= 0);
 }
 
 void x_reset(bitstring *str, int bitindex)
-/*  clear a single bit  */
 {
+   /*  clear a single bit  */
    int i;
 
    *str = x_bitstring(*str);
-   if (bitindex < 0) return;
-   if ((bitindex+8)/8 > ((*str)->maxIndex+8)/8) {
-      *str = (bitstring) realloc(*str,sizeof(struct bitstring) + (bitindex+8)/8);
-      for (i=((*str)->maxIndex+8)/8+1; i <= (bitindex+8)/8; i++) (*str)->bits[i]=0;
+   if (bitindex < 0) {
+      return;
+   }
+   if (bsWord(bitindex)+1 > bsLen(*str)) {
+      *str = (bitstring) realloc(*str,sizeof(struct bitstring) + (bsWord(bitindex)+1)*sizeof(bitstringMember));
+      for (i=bsLen(*str); i <= bsWord(bitindex); i++) (*str)->bits[i]=0;
    }
    if ((*str)->maxIndex < bitindex) (*str)->maxIndex = bitindex;
-   (*str)->bits[bitindex/8] &= ~(0x80>>bitindex%8);
+   (*str)->bits[bsWord(bitindex)] &= ~(bsTopBit>>bsBit(bitindex));
    assert((*str)->maxIndex >= 0);
 }
 
 boolean x_test(bitstring str, int bitindex)
-/*  return value of a single bit  */
 {
-   if (str == NULLBITS) return false;
-   if (bitindex < 0) return false;
-   if (bitindex > str->maxIndex) return false;
-   return (str->bits[bitindex/8] & (0x80>>(bitindex%8))) != 0;
+   /*  return value of a single bit  */
+   if (str == NULLBITS) {
+      return false;
+   }
+   if (bitindex < 0) {
+      return false;
+   }
+   if (bitindex > str->maxIndex) {
+      return false;
+   }
+   return (str->bits[bsWord(bitindex)] & (bsTopBit>>(bsBit(bitindex)))) != 0;
 }
 
 void x_and(bitstring *str0, bitstring str1, bitstring str2)
-/* the logical product of two bit strings */
 {
+   /* the logical product of two bit strings */
    bitstring str3;
    bitstring res;
    int i,len;
 
-   res = x_bitstring(NULLBITS);
    str1 = x_bitstring(str1);
    str2 = x_bitstring(str2);
+
+   if (str1->maxIndex < 0 || str2->maxIndex < 0) {
+      *str0 = NULLBITS;
+      return;
+   }
    if (str2->maxIndex > str1->maxIndex) {
       str3 = str1;
       str1 = str2;
@@ -115,71 +139,76 @@ void x_and(bitstring *str0, bitstring str1, bitstring str2)
    }
    /*  str1 is now the longer; the result will be truncated to the length
        of str2 */
-   len = (str2->maxIndex+8)/8;
-   res = (bitstring) realloc(res, sizeof(struct bitstring)+len);
+   len = bsLen(str2);
+   res = (bitstring) malloc(sizeof(struct bitstring)+len*sizeof(bitstringMember));
    res->maxIndex = str2->maxIndex;
 
-   for (i = 0; i<len-1; i++) {
+   for (i = 0; i<len; i++) {
       res->bits[i] = str2->bits[i] & str1->bits[i];
    }
-   res->bits[len-1] = str2->bits[len-1] & str1->bits[len-1] &
-               ~(0x7f >> (str2->maxIndex%8));
+   res->bits[len-1] &= ~(bsOtherBits >> bsBit(res->maxIndex));
    assert(res->maxIndex >= 0);
    *str0 = res;
 }
 
 void x_or(bitstring *str0, bitstring str1, bitstring str2)
-/* the logical sum of two bit strings; will be the length of the longer  */
 {
+   /* the logical sum of two bit strings; will be the length of the longer  */
    bitstring str3;
    int i,len;
    bitstring res;
 
-   res = x_bitstring(NULLBITS);
    str1 = x_bitstring(str1);
    str2 = x_bitstring(str2);
+
+   if (str1->maxIndex < 0) {
+      *str0 = newbits(str2);
+      return;
+   }
+   if (str2->maxIndex < 0) {
+      *str0 = newbits(str1);
+      return;
+   }
    if (str2->maxIndex > str1->maxIndex) {
       str3 = str1;
       str1 = str2;
       str2 = str3;
    }
    /* str1 is now the longer; the result will be that of str1 */
-   len = (str1->maxIndex+8)/8;
-   res = (bitstring) realloc(res, sizeof(struct bitstring)+len);
+   len = bsLen(str1);
+   res = (bitstring) malloc(sizeof(struct bitstring)+len*sizeof(bitstringMember));
    res->maxIndex = str1->maxIndex;
 
    /* combine the common prefix */
-   len = (str2->maxIndex+8)/8;
+   len = bsLen(str2);
    for (i = 0; i<len; i++) {
       res->bits[i] = str1->bits[i] | str2->bits[i];
    }
 
    /* just copy the remainder; clip the last byte */
-   len = (str1->maxIndex+8)/8;
+   len = bsLen(str1);
    for (; i<len; i++) {
       res->bits[i] = str1->bits[i];
    }
-   res->bits[len] &= ~(0x7f >> (res->maxIndex%8));
+   res->bits[len-1] &= ~(bsOtherBits >> bsBit(res->maxIndex));
    assert(res->maxIndex >= 0);
    *str0 = res;
 }
 
 void x_not(bitstring *str0, bitstring str1)
-/*  inverse of a bit string up to the last defined bit  */
 {
+   /*  inverse of a bit string up to the last defined bit  */
    int i,len;
    bitstring res;
 
-   res = x_bitstring(NULLBITS);
-   str1 = x_bitstring(str1);
-   len = (str1->maxIndex+8)/8;
-   res = (bitstring)realloc(*str0, sizeof(struct bitstring)+len);
+   len = bsLen(str1);
+   res = (bitstring)malloc(sizeof(struct bitstring)+len*sizeof(bitstringMember));
    res->maxIndex = str1->maxIndex;
 
    for (i=0; i<len; i++) {
       res->bits[i] = ~str1->bits[i];
    }
-   res->bits[len-1] &= ~(0x7f>>(str1->maxIndex%8));
+   res->bits[len-1] &= ~(bsOtherBits >> bsBit(res->maxIndex));
    assert(res->maxIndex >= 0);
    *str0 = res;
 }
@@ -189,7 +218,9 @@ boolean x_equal(bitstring str1, bitstring str2)
    bitstring str3;
    int i,len1,len2,bits2;
 
-   if (str1->maxIndex == -1 && str2->maxIndex == -1) return true;
+   if (str1->maxIndex == -1 && str2->maxIndex == -1) {
+      return true;
+   }
    str1 = x_bitstring(str1);
    str2 = x_bitstring(str2);
    if (str2->maxIndex > str1->maxIndex) {
@@ -199,46 +230,59 @@ boolean x_equal(bitstring str1, bitstring str2)
    }
 
    /*  str1 is now the longer */
-
-   len1 = (str1->maxIndex+8)/8 - 1;
+   len1 = bsLen(str1)-1;
    if (str2->maxIndex != -1) {
-      len2 = (str2->maxIndex+8)/8 - 1;
+      len2 = bsLen(str2)-1;
 
       /* compare common prefix*/
-      for (i = 0; i<len2; i++) {
-         if (str2->bits[i] != str1->bits[i]) return false;
+      for (i = 0; i<len2-1; i++) {
+         if (str2->bits[i] != str1->bits[i]) {
+            return false;
+         }
       }
 
-      /* compare trailing partial byte */
-      if ((str1->bits[len2] & ~(0x7f >> (str2->maxIndex%8))) !=
-          (str2->bits[len2] & ~(0x7f >> (str2->maxIndex%8)))) return false;
-      bits2 = str2->maxIndex%8+1;
+      /* compare trailing partial word */
+      if ((str1->bits[len2] & ~(bsOtherBits >> bsBit(str2->maxIndex))) !=
+          (str2->bits[len2] & ~(bsOtherBits >> bsBit(str2->maxIndex)))) {
+         return false;
+      }
+      bits2 = bsBit(str2->maxIndex);
    }
    else {
       len2 = 0;
       bits2 = 0;
    }
 
-   if (str1->maxIndex == str2->maxIndex) return true;
+   if (str1->maxIndex == str2->maxIndex) {
+      return true;
+   }
 
    /* if lengths differ all trailing bits must be zero */
    if (len1 > len2) {
-           /* all of one chunk, plus maybe more, and a trailing part. */
-           if ((str1->bits[len2] & (0xff >> bits2)) != 0) return 0;
+      /* remainder of one word, plus maybe more, and a trailing part. */
+      if ((str1->bits[len2] & (bsAllBits >> bits2)) != 0) {
+         return false;
+      }
 
-           /* then whole bytes */
-           for (i = len2+1; i<len1; i++) {
-              if (str1->bits[i] != 0) return 0;
-           }
-           /* and the partial chunk */
-           if ((str1->bits[len1] & ~(0x7f >> (str1->maxIndex%8))) != 0) return false;
+      /* then remaining whole chunks */
+      for (i = len2+1; i<len1-1; i++) {
+         if (str1->bits[i] != 0) {
+            return false;
+         }
+      }
+      /* and the partial chunk */
+      if ((str1->bits[len1] & ~(bsOtherBits >> bsBit(str1->maxIndex))) != 0) {
+         return false;
+      }
    }
    else {
-        /* a few more bits in one chunk */
-           if ((str1->bits[len2] & (0xff >> bits2)
-                                 & ~(0x7f >> (str1->maxIndex%8))) != 0) return false;
+      /* a few more bits in one chunk */
+      if ((str1->bits[len2] & (bsAllBits >> bits2)
+                            & ~(bsOtherBits >> bsBit(str1->maxIndex))) != 0) {
+         return false;
+      }
    }
-   return 1;
+   return true;
 }
 
 void x_minus(bitstring *str0, bitstring str1, bitstring str2)
@@ -257,29 +301,31 @@ void x_minus(bitstring *str0, bitstring str1, bitstring str2)
 }
 
 int x_count(bitstring str)
-/*  count number of elements (ones)  */
 {
+   /*  count number of elements (ones)  */
    int i, j, count;
-   char item;
+   bitstringMember item;
    int len;
 
    str = x_bitstring(str);
-   len = str->maxIndex;
-   if (len == -1) return 0;
-   len = (len+8)/8 - 1;
+   if (str->maxIndex == -1) {
+      return 0;
+   }
+
+   len = bsLen(str);
    count = 0;
-   for (i=0; i<len; i++) {
+   for (i=0; i<len-1; i++) {
       item = str->bits[i];
       if (item != 0) {
-         for (j=0; j<8; j++) {
+         for (j=0; j < bitsPerByte*sizeof(bitstringMember); j++) {
             if (((item >> j) & 1) != 0) count = count + 1;
          }
       }
    }
-   item = str->bits[len] & ~(0x7f>>(str->maxIndex%8));
 
+   item = str->bits[len-1] & ~(bsOtherBits>>bsBit(str->maxIndex));
    if (item != 0) {
-      for (j=0; j<8; j++) {
+      for (j=0; j < bitsPerByte*sizeof(bitstringMember); j++) {
          if (((item >> j) & 1) != 0) count = count + 1;
       }
    }
@@ -287,67 +333,85 @@ int x_count(bitstring str)
 }
 
 boolean x_empty(bitstring str)
-/*  test for empty set  */
 {
-   int i,len;
+   /*  test for empty set  */
+   int len;
+   bitstringMember i;
 
-   if (str == NULLBITS) return true;
-   if (str->maxIndex == -1) return true;
+   if (str == NULLBITS) {
+      return true;
+   }
+   if (str->maxIndex == -1) {
+      return true;
+   }
    str = x_bitstring(str);
-   len = (str->maxIndex+8)/8;
+   len = bsLen(str);
 
    for (i=0 ; i<len-1; i++) {
-      if (str->bits[i] != 0) return false;
+      if (str->bits[i] != 0) {
+         return false;
+      }
    }
-   i = str->bits[len-1] & ~(0x7f >> (str->maxIndex%8)) & 0xff;
+   i = str->bits[len-1] & ~(bsOtherBits>>bsBit(str->maxIndex));
    return (i == 0);
 }
 
 bitstring newbits(bitstring str)
 {
-        bitstring s;
-        if (str == NULLBITS) {
-           return NULLBITS;
-        }
+   bitstring s;
+   int len;
 
-        s = (bitstring) malloc(sizeof(struct bitstring)+(str->maxIndex+8)/8);
-        memcpy(s,str,sizeof(struct bitstring)+(str->maxIndex+8)/8);
-        return s;
+   str = x_bitstring(str);
+   len = sizeof(struct bitstring) + bsLen(str)*sizeof(bitstringMember);
+
+   s = (bitstring) malloc(len);
+   if (str == NULLBITS) {
+      memset(s, 0, len);
+      s->maxIndex = -1;
+   }
+   else {
+      memcpy(s,str,len);
+   }
+   return s;
 }
 
 void freebits(bitstring *s)
 {
-        if (*s != NULLBITS) free(*s);
-        *s = NULLBITS;
+   if (*s != NULLBITS) free(*s);
+   *s = NULLBITS;
 }
 
 void x_setempty(bitstring *str)
 {
-        freebits(str);
-        *str=x_bitstring(NULLBITS);
+   freebits(str);
+   *str=newbits(NULLBITS);
+}
+
+long x_size(bitstring str) 
+{
+   return sizeof(struct bitstring)+bsLen(str);
 }
 
 boolean x_empty_minus(bitstring str1, bitstring str2)
 {
-        bitstring str;
-        boolean foo;
+   bitstring str;
+   boolean foo;
 
-        str=NULLBITS;
-        x_minus(&str, str1, str2);
-        foo = x_empty(str);
-        freebits(&str);
-        return foo;
+   str=NULLBITS;
+   x_minus(&str, str1, str2);
+   foo = x_empty(str);
+   freebits(&str);
+   return foo;
 }
-
 
 boolean x_empty_and(bitstring str1, bitstring str2)
 {
-        bitstring str;
-        boolean foo;
+   bitstring str;
+   boolean foo;
 
-        str=NULLBITS;
-        x_and(&str, str1, str2);
-        foo = x_empty(str);
-        freebits(&str);
-        return foo;
+   str=NULLBITS;
+   x_and(&str, str1, str2);
+   foo = x_empty(str);
+   freebits(&str);
+   return foo;
 }
